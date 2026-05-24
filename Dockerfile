@@ -49,10 +49,10 @@ RUN mkdir -p ./uploads
 ENV ENV=production
 ENV UPLOAD_DIR=/app/uploads
 
-# Expose port
-EXPOSE 8000
+# Railway (and most PaaS) inject $PORT — default to 8000 for local use
+EXPOSE ${PORT:-8000}
 
 # Run from /app/backend so flat imports (database, auth, routers) resolve correctly.
 # main.py uses Path(__file__).parent.parent which still resolves to /app for frontend serving.
 WORKDIR /app/backend
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
