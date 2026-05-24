@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
+    environment:
+      - ENV=development
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-changeme_dev_only}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-mtjllc@proton.me}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme_dev_only}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./mtj_llc.db}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:8000}
+      - UPLOAD_DIR=/app/uploads
+    restart: unless-stopped
+
+volumes:
+  uploads:
