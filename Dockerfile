@@ -3,12 +3,16 @@
 # ─────────────────────────────────────────────────
 FROM node:20-alpine AS frontend-build
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-COPY frontend/package*.json ./
+# Copy package files from root
+COPY package*.json ./
 RUN npm ci
 
-COPY frontend/ ./
+# Copy source files from root
+COPY vite.config.js ./
+COPY index.html ./
+COPY src/ ./src/
 RUN npm run build
 
 # ─────────────────────────────────────────────────
@@ -24,14 +28,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY backend/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend source
-COPY backend/ ./backend/
+# Copy backend source (flat structure at root)
+COPY main.py ./backend/
+COPY auth.py ./backend/
+COPY database.py ./backend/
+COPY models.py ./backend/
+COPY schemas.py ./backend/
+COPY routers/ ./backend/routers/
 
-# Copy built frontend (matches FRONTEND_DIR in main.py: parent.parent/frontend/dist)
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+# Copy built frontend
+COPY --from=frontend-build /app/dist ./frontend/dist
 
 # Create uploads directory
 RUN mkdir -p ./uploads
