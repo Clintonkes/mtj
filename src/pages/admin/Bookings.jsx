@@ -3,6 +3,9 @@ import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../hooks/useConfirm";
+import Pagination from "../../components/Pagination";
+
+const PAGE_SIZE = 10;
 
 const STATUS_OPTS = ["pending", "approved", "completed", "cancelled"];
 const BADGE = {
@@ -20,6 +23,7 @@ export default function AdminBookings() {
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     load();
@@ -66,6 +70,10 @@ export default function AdminBookings() {
   }
 
   const filtered = filter === "all" ? bookings : bookings.filter((b) => b.status === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handleFilter(val) { setFilter(val); setPage(1); }
 
   return (
     <AdminLayout title="Bookings">
@@ -78,7 +86,7 @@ export default function AdminBookings() {
               className="form-control"
               style={{ width: "auto", padding: ".4rem .8rem", fontSize: ".85rem" }}
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) => handleFilter(e.target.value)}
             >
               <option value="all">All Statuses</option>
               {STATUS_OPTS.map((s) => (
@@ -111,7 +119,7 @@ export default function AdminBookings() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((b) => (
+                {paginated.map((b) => (
                   <tr key={b.id}>
                     <td>
                       <button
@@ -147,6 +155,7 @@ export default function AdminBookings() {
                 ))}
               </tbody>
             </table>
+            <Pagination page={page} totalPages={totalPages} onPage={setPage} />
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,7 +7,13 @@ from database import get_db
 from auth import get_current_admin
 import models
 import schemas
+from email_service import (
+    send_booking_confirmation,
+    send_booking_admin_notification,
+    send_booking_status_update,
+)
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/bookings", tags=["bookings"])
 
 
@@ -17,6 +24,12 @@ def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
+    # Fire-and-forget emails (errors are logged, never raise)
+    try:
+        send_booking_confirmation(db_booking)
+        send_booking_admin_notification(db_booking)
+    except Exception as exc:
+        logger.error("Email error on new booking %s: %s", db_booking.id, exc)
     return db_booking
 
 
@@ -51,13 +64,17 @@ def update_booking_status(
     db: Session = Depends(get_db),
     _: models.Admin = Depends(get_current_admin),
 ):
-    """Admin only: update booking status."""
+    """Admin only: update booking status and notify customer."""
     booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     booking.status = update.status
     db.commit()
     db.refresh(booking)
+    try:
+        send_booking_status_update(booking)
+    except Exception as exc:
+        logger.error("Email error on status update booking %s: %s", booking_id, exc)
     return booking
 
 

@@ -3,6 +3,9 @@ import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../hooks/useConfirm";
+import Pagination from "../../components/Pagination";
+
+const PAGE_SIZE = 10;
 
 const BADGE = {
   unread:  "badge--amber",
@@ -20,6 +23,7 @@ export default function AdminMessages() {
   const [sending, setSending] = useState(false);
   const [toast, setToast] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   useEffect(() => { load(); }, [token]);
 
@@ -83,6 +87,10 @@ export default function AdminMessages() {
   }
 
   const filtered = filter === "all" ? messages : messages.filter((m) => m.status === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handleFilter(val) { setFilter(val); setPage(1); }
 
   return (
     <AdminLayout title="Messages">
@@ -95,7 +103,7 @@ export default function AdminMessages() {
               className="form-control"
               style={{ width: "auto", padding: ".4rem .8rem", fontSize: ".85rem" }}
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) => handleFilter(e.target.value)}
             >
               <option value="all">All</option>
               <option value="unread">Unread</option>
@@ -128,7 +136,7 @@ export default function AdminMessages() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((m) => (
+                {paginated.map((m) => (
                   <tr key={m.id} style={{ fontWeight: m.status === "unread" ? 700 : 400 }}>
                     <td>{m.full_name}</td>
                     <td style={{ fontSize: ".85rem" }}>{m.email}</td>
@@ -147,6 +155,7 @@ export default function AdminMessages() {
                 ))}
               </tbody>
             </table>
+            <Pagination page={page} totalPages={totalPages} onPage={setPage} />
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -6,7 +7,9 @@ from database import get_db
 from auth import get_current_admin
 import models
 import schemas
+from email_service import send_message_confirmation, send_message_admin_notification
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/messages", tags=["messages"])
 
 
@@ -17,6 +20,11 @@ def create_message(message: schemas.MessageCreate, db: Session = Depends(get_db)
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
+    try:
+        send_message_confirmation(db_message)
+        send_message_admin_notification(db_message)
+    except Exception as exc:
+        logger.error("Email error on new message %s: %s", db_message.id, exc)
     return db_message
 
 
@@ -39,7 +47,6 @@ def get_message(
     msg = db.query(models.Message).filter(models.Message.id == message_id).first()
     if not msg:
         raise HTTPException(status_code=404, detail="Message not found")
-    # Mark as read
     if msg.status == models.MessageStatus.unread:
         msg.status = models.MessageStatus.read
         db.commit()

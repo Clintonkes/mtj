@@ -3,6 +3,9 @@ import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 import { useConfirm } from "../../hooks/useConfirm";
+import Pagination from "../../components/Pagination";
+
+const PAGE_SIZE = 10;
 
 const EMPTY_FORM = { title: "", description: "", icon: "", is_active: true };
 const ICONS = ["✂️", "🌱", "🌿", "🍂", "💧", "🌾", "🪴", "🏢", "🔧", "🌳", "🏡", "⭐"];
@@ -16,6 +19,7 @@ export default function AdminServices() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => { load(); }, [token]);
 
@@ -87,6 +91,9 @@ export default function AdminServices() {
     setTimeout(() => setToast(null), 3500);
   }
 
+  const totalPages = Math.max(1, Math.ceil(services.length / PAGE_SIZE));
+  const paginated = services.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <AdminLayout title="Services">
       {ConfirmDialog}
@@ -121,7 +128,7 @@ export default function AdminServices() {
                 </tr>
               </thead>
               <tbody>
-                {services.map((svc) => (
+                {paginated.map((svc) => (
                   <tr key={svc.id}>
                     <td style={{ fontSize: "1.5rem" }}>{svc.icon || "🌿"}</td>
                     <td style={{ fontWeight: 600 }}>{svc.title}</td>
@@ -148,6 +155,7 @@ export default function AdminServices() {
                 ))}
               </tbody>
             </table>
+            <Pagination page={page} totalPages={totalPages} onPage={setPage} />
           </div>
         )}
       </div>

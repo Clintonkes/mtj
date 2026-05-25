@@ -18,8 +18,6 @@ export default function Footer() {
           <Link to="/">Home</Link>
           <Link to="/about">About Us</Link>
           <Link to="/services">Services</Link>
-          <Link to="/gallery">Gallery</Link>
-          <Link to="/testimonials">Testimonials</Link>
           <Link to="/faq">FAQ</Link>
           <Link to="/contact">Contact</Link>
         </div>

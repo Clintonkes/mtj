@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 
-const SERVICES = [
+const FALLBACK_SERVICES = [
   "Lawn Mowing & Edging",
   "Seasonal Cleanup",
   "Mulching",
@@ -29,6 +29,15 @@ export default function RequestEstimate() {
   const [form, setForm] = useState(INIT);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [services, setServices] = useState(FALLBACK_SERVICES);
+
+  useEffect(() => {
+    api.getServices()
+      .then((data) => {
+        if (data?.length) setServices(data.map((s) => s.title));
+      })
+      .catch(() => {/* use fallback */});
+  }, []);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -76,12 +85,11 @@ export default function RequestEstimate() {
               and schedule your free on-site assessment.
             </p>
             <p style={{ marginBottom: "2.5rem", color: "var(--gray-500)", fontSize: ".9rem" }}>
-              In the meantime, feel free to browse our services or check out our gallery for
-              inspiration.
+              In the meantime, feel free to browse our services or learn more about our team.
             </p>
             <div className="btn-group" style={{ justifyContent: "center" }}>
               <Link to="/" className="btn btn--primary">Back to Home</Link>
-              <Link to="/gallery" className="btn btn--secondary">View Our Work</Link>
+              <Link to="/services" className="btn btn--secondary">Our Services</Link>
             </div>
           </div>
         </section>
@@ -196,7 +204,7 @@ export default function RequestEstimate() {
                       required
                     >
                       <option value="">Select a service...</option>
-                      {SERVICES.map((s) => (
+                      {services.map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </select>

@@ -7,8 +7,6 @@ import { useScrollAnimation } from "./hooks/useScrollAnimation";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
-import Gallery from "./pages/Gallery";
-import Testimonials from "./pages/Testimonials";
 import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import RequestEstimate from "./pages/RequestEstimate";
@@ -17,9 +15,7 @@ import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminBookings from "./pages/admin/Bookings";
 import AdminMessages from "./pages/admin/Messages";
-import AdminTestimonials from "./pages/admin/TestimonialsAdmin";
 import AdminServices from "./pages/admin/ServicesAdmin";
-import AdminGallery from "./pages/admin/GalleryAdmin";
 
 function PublicLayout({ children }) {
   useScrollAnimation();
@@ -38,8 +34,6 @@ export default function App() {
       <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
       <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
       <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
-      <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
-      <Route path="/testimonials" element={<PublicLayout><Testimonials /></PublicLayout>} />
       <Route path="/faq" element={<PublicLayout><FAQ /></PublicLayout>} />
       <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/estimate" element={<PublicLayout><RequestEstimate /></PublicLayout>} />
@@ -49,9 +43,7 @@ export default function App() {
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/bookings" element={<ProtectedRoute><AdminBookings /></ProtectedRoute>} />
       <Route path="/admin/messages" element={<ProtectedRoute><AdminMessages /></ProtectedRoute>} />
-      <Route path="/admin/testimonials" element={<ProtectedRoute><AdminTestimonials /></ProtectedRoute>} />
       <Route path="/admin/services" element={<ProtectedRoute><AdminServices /></ProtectedRoute>} />
-      <Route path="/admin/gallery" element={<ProtectedRoute><AdminGallery /></ProtectedRoute>} />
     </Routes>
   );
 }
