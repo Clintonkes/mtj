@@ -33,28 +33,56 @@ async def lifespan(app: FastAPI):
 
 
 def _seed_admin():
-    """Create a default admin if none exists. Credentials come from env vars."""
+    """Create or update the admin account from environment variables.
+
+    - If no admin exists: always creates one (random password if ADMIN_PASSWORD unset).
+    - If ADMIN_PASSWORD is explicitly set: upserts the target username so env vars
+      always win, even after the first deploy created an account with a random password.
+    """
     db = SessionLocal()
     try:
-        if db.query(models.Admin).count() == 0:
-            admin_user = os.environ.get("ADMIN_USERNAME", "admin")
-            admin_email = os.environ.get("ADMIN_EMAIL", "mtjllc@proton.me")
-            admin_pass = os.environ.get("ADMIN_PASSWORD")
-            if not admin_pass:
-                import secrets as _s
-                admin_pass = _s.token_urlsafe(16)
-                logger.warning(
-                    f"No ADMIN_PASSWORD set. Generated temporary password: {admin_pass}"
-                    " — CHANGE THIS IMMEDIATELY."
-                )
-            admin = models.Admin(
+        admin_user = os.environ.get("ADMIN_USERNAME", "admin")
+        admin_email = os.environ.get("ADMIN_EMAIL", "mtjllc@proton.me")
+        admin_pass = os.environ.get("ADMIN_PASSWORD")
+
+        existing = db.query(models.Admin).filter(
+            models.Admin.username == admin_user
+        ).first()
+
+        if admin_pass:
+            # Env var is set — always sync credentials so a redeploy is enough to
+            # reset the password (covers the case where the first deploy used a
+            # randomly generated password before env vars were configured).
+            hashed = get_password_hash(admin_pass)
+            if existing:
+                existing.email = admin_email
+                existing.hashed_password = hashed
+                existing.is_active = True
+                db.commit()
+                logger.info(f"Admin '{admin_user}' credentials synced from env vars.")
+            else:
+                db.add(models.Admin(
+                    username=admin_user,
+                    email=admin_email,
+                    hashed_password=hashed,
+                ))
+                db.commit()
+                logger.info(f"Admin '{admin_user}' created from env vars.")
+        elif db.query(models.Admin).count() == 0:
+            # No env var and no existing admin — generate a one-time random password.
+            import secrets as _s
+            admin_pass = _s.token_urlsafe(16)
+            logger.warning(
+                f"No ADMIN_PASSWORD set. Generated temporary password: {admin_pass}"
+                " — SET ADMIN_PASSWORD ENV VAR AND REDEPLOY IMMEDIATELY."
+            )
+            db.add(models.Admin(
                 username=admin_user,
                 email=admin_email,
                 hashed_password=get_password_hash(admin_pass),
-            )
-            db.add(admin)
+            ))
             db.commit()
-            logger.info(f"Default admin '{admin_user}' created.")
+            logger.info(f"Default admin '{admin_user}' created with temporary password.")
     finally:
         db.close()
 
