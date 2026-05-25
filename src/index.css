@@ -1337,3 +1337,40 @@ table.admin-table tbody td {
   .estimate-form-card { padding: 1.5rem; }
   .stats-bar__grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ─────────────────────────────────────────────────
+   Scroll Reveal Animations
+   ───────────────────────────────────────────────── */
+.service-card,
+.testimonial-card,
+.feature-item,
+.process-step,
+.contact-info-card,
+.admin-stat,
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: none;
+}
+
+.service-card.scroll-visible,
+.testimonial-card.scroll-visible,
+.feature-item.scroll-visible,
+.process-step.scroll-visible,
+.contact-info-card.scroll-visible,
+.admin-stat.scroll-visible,
+[data-reveal].scroll-visible {
+  animation: scrollReveal 0.55s ease both;
+  animation-delay: calc(var(--scroll-i, 0) * 0.06s);
+}
+
+@keyframes scrollReveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

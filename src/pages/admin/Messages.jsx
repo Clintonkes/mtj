@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../hooks/useConfirm";
 
 const BADGE = {
   unread:  "badge--amber",
@@ -11,6 +12,7 @@ const BADGE = {
 
 export default function AdminMessages() {
   const { token } = useAuth();
+  const { confirm: confirmDelete, ConfirmDialog } = useConfirm();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -64,7 +66,7 @@ export default function AdminMessages() {
   }
 
   async function deleteMessage(id) {
-    if (!confirm("Delete this message?")) return;
+    if (!await confirmDelete("Delete this message? This cannot be undone.")) return;
     try {
       await api.adminDeleteMessage(id, token);
       setMessages((prev) => prev.filter((m) => m.id !== id));
@@ -84,6 +86,7 @@ export default function AdminMessages() {
 
   return (
     <AdminLayout title="Messages">
+      {ConfirmDialog}
       <div className="admin-card">
         <div className="admin-card__header">
           <h2>{filtered.length} Message{filtered.length !== 1 ? "s" : ""}</h2>

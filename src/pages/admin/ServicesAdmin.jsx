@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../hooks/useConfirm";
 
 const EMPTY_FORM = { title: "", description: "", icon: "", is_active: true };
 const ICONS = ["✂️", "🌱", "🌿", "🍂", "💧", "🌾", "🪴", "🏢", "🔧", "🌳", "🏡", "⭐"];
 
 export default function AdminServices() {
   const { token } = useAuth();
+  const { confirm: confirmDelete, ConfirmDialog } = useConfirm();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null); // null | "create" | {editing service}
@@ -61,7 +63,7 @@ export default function AdminServices() {
   }
 
   async function deleteService(id) {
-    if (!confirm("Delete this service? This cannot be undone.")) return;
+    if (!await confirmDelete("Delete this service? This cannot be undone.")) return;
     try {
       await api.adminDeleteService(id, token);
       setServices((prev) => prev.filter((s) => s.id !== id));
@@ -87,6 +89,7 @@ export default function AdminServices() {
 
   return (
     <AdminLayout title="Services">
+      {ConfirmDialog}
       <div className="admin-card">
         <div className="admin-card__header">
           <h2>{services.length} Service{services.length !== 1 ? "s" : ""}</h2>

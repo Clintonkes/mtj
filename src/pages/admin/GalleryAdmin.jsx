@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../hooks/useConfirm";
 
 export default function AdminGallery() {
   const { token } = useAuth();
+  const { confirm: confirmDelete, ConfirmDialog } = useConfirm();
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [caption, setCaption] = useState("");
+  const [title, setTitle] = useState("");
   const [toast, setToast] = useState(null);
   const [filter, setFilter] = useState("all");
   const fileRef = useRef(null);
@@ -34,14 +36,14 @@ export default function AdminGallery() {
 
     const formData = new FormData();
     formData.append("file", file);
-    if (caption) formData.append("caption", caption);
+    formData.append("title", title);
 
     setUploading(true);
     try {
       const newImg = await api.adminUploadGallery(formData, token);
       setImages((prev) => [newImg, ...prev]);
       showToast("Image uploaded successfully");
-      setCaption("");
+      setTitle("");
       if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
       showToast(err.message || "Upload failed", true);
@@ -62,7 +64,7 @@ export default function AdminGallery() {
   }
 
   async function deleteImage(id) {
-    if (!confirm("Delete this image permanently?")) return;
+    if (!await confirmDelete("Delete this image permanently?")) return;
     try {
       await api.adminDeleteGallery(id, token);
       setImages((prev) => prev.filter((i) => i.id !== id));
@@ -81,6 +83,7 @@ export default function AdminGallery() {
 
   return (
     <AdminLayout title="Gallery">
+      {ConfirmDialog}
       {/* Upload card */}
       <div className="admin-card" style={{ marginBottom: "1.5rem" }}>
         <div className="admin-card__header">
@@ -99,12 +102,13 @@ export default function AdminGallery() {
               />
             </div>
             <div className="form-group" style={{ flex: "1 1 260px" }}>
-              <label>Caption (optional)</label>
+              <label>Image Title *</label>
               <input
                 className="form-control"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Lawn transformation in Germantown"
+                required
               />
             </div>
             <button

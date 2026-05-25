@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
 import { api } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "../../hooks/useConfirm";
 
 const STATUS_OPTS = ["pending", "approved", "completed", "cancelled"];
 const BADGE = {
@@ -13,6 +14,7 @@ const BADGE = {
 
 export default function AdminBookings() {
   const { token } = useAuth();
+  const { confirm: confirmDelete, ConfirmDialog } = useConfirm();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -47,7 +49,7 @@ export default function AdminBookings() {
   }
 
   async function deleteBooking(id) {
-    if (!confirm("Delete this booking? This cannot be undone.")) return;
+    if (!await confirmDelete("Delete this booking? This cannot be undone.")) return;
     try {
       await api.adminDeleteBooking(id, token);
       setBookings((prev) => prev.filter((b) => b.id !== id));
@@ -67,6 +69,7 @@ export default function AdminBookings() {
 
   return (
     <AdminLayout title="Bookings">
+      {ConfirmDialog}
       <div className="admin-card">
         <div className="admin-card__header">
           <h2>{filtered.length} Booking{filtered.length !== 1 ? "s" : ""}</h2>

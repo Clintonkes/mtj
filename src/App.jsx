@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useScrollAnimation } from "./hooks/useScrollAnimation";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -21,6 +22,7 @@ import AdminServices from "./pages/admin/ServicesAdmin";
 import AdminGallery from "./pages/admin/GalleryAdmin";
 
 function PublicLayout({ children }) {
+  useScrollAnimation();
   return (
     <>
       <Navbar />
@@ -42,6 +44,7 @@ export default function App() {
       <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
       <Route path="/estimate" element={<PublicLayout><RequestEstimate /></PublicLayout>} />
 
+      <Route path="/login" element={<Navigate to="/admin/login" replace />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/bookings" element={<ProtectedRoute><AdminBookings /></ProtectedRoute>} />
