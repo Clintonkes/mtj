@@ -37,6 +37,7 @@ COPY auth.py ./backend/
 COPY database.py ./backend/
 COPY models.py ./backend/
 COPY schemas.py ./backend/
+COPY email_service.py ./backend/
 COPY routers/ ./backend/routers/
 
 # Copy built frontend
